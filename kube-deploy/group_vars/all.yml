@@ -14,22 +14,26 @@
 # limitations under the License.
 #
 ## Deployment Options:
-bootstrap_os: ubuntu
-public_iface: enp0s3
-nat_iface: enp0s3
+bootstrap_os: centos
+public_iface: eth0
+nat_iface: eth0
 #
 #
 ## Kubernetes Parameters:
 kubectl_endpoint: kube1
 kubelet_hostname_override: true
 init_token: ac7da3.b2cofcda6ab01976
-kube_version: v1.5.0-beta.1
+kube_version: v1.4.6
+# Helm does not currently work with k8s 1.5....
+#kube_version: v1.5.0-beta.2
+# There is a bug in kubeadm that prevents this being respected, leave as cluster.local for now:
+kube_service_dns_domain: cluster.local
 #
 #
 ## Kubernetes SDN Deployment Options:
 kube_cluster_ip_cidr: 10.96.0.0/12
 kube_sdn_deploy: true
-kube_sdn: weave
+kube_sdn: romana
 romana_version: v0.9.3.6
 #
 #
@@ -40,6 +44,14 @@ kube_addons:
   - kube_dashboard
   - kube_helm
 #
+## Patch Kubernetes:
+# Run tasks in ../roles/kube-prep/tasks/patch-kube.yml
+patch_kube_enabled: true
+#
 ## Docker Daemon Options:
 # Shared mounts is required for several OpenStack Kolla-Kubernetes components.
-docker_shared_mounts: false
+docker_shared_mounts: true
+#
+## Kolla-Kubernetes addtional options:
+# Setup the host to use the kube-dns nameservers (required for ceph and ingress)
+setup_host_kube_dns: true

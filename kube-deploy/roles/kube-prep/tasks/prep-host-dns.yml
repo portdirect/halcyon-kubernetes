@@ -1,0 +1,58 @@
+---
+# Copyright 2016, JinkIT, and it's Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+
+# This playbook could be made much nicer, and more efficient but doing things
+# this way make it easier to parse the hoops jumped through to enable the host
+# and pods running in the hosts network namespace to utilise k8s dns effectively
+
+- name: collect kube-dns ip from kubernetes masters
+  shell: kubectl get --namespace=kube-system svc kube-dns -o jsonpath={.spec.clusterIP}
+  delegate_to: "{{ item }}"
+  delegate_facts: true
+  with_items: "{{ groups['kube-masters'] }}"
+  register: kube_dns_ip
+
+- name: setting fact
+  set_fact:
+    kube_dns_ip_addr: "{{ item.stdout }}"
+  with_items: "{{ kube_dns_ip.results }}"
+
+# # These steps are required as otherwise the kube-dns pod will attempt to use itself for host resolution
+# - name: copying orginal host resolv.conf to use a kube template
+#   shell: cp /etc/resolv.conf /etc/resolv-kube.conf
+#
+# - name: setting up resolve.conf for use in kube pods not using cluster dns
+#   template: src="20-resolv-conf-override.conf.j2" dest="/etc/systemd/system/kubelet.service.d/20-resolv-conf-override.conf" mode=0640
+#   register: kdnso
+#
+# - name: reload systemd config
+#   command: systemctl daemon-reload
+#   when: kdnso.changed
+
+- name: restart kubelet
+  command: systemctl restart kubelet
+
+- name: forcing all k8s containers to be recreated with correct dns settings
+  shell: docker ps | awk '$NF ~ /^k8s_/ { print $1}' | xargs -l1 docker rm -f
+  ignore_errors: true
+
+- name: waiting for k8s api to come back up
+  shell: while ! [[ $(kubectl cluster-info) ]]; do sleep 2 ; done
+  when: inventory_hostname in groups['kube-masters']
+
+# Now we can setup the host's resolve conf to use the k8s dns server
+- name: setting up host resolve conf to use kube dns
+  template: src="resolv.conf.j2" dest="/etc/resolv.conf" mode=0644

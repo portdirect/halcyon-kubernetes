@@ -15,4 +15,4 @@
 #
 
 - include: addons-dashboard.yml
-- include: addons-helm.yml
+#- include: addons-helm.yml

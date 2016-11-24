@@ -14,16 +14,7 @@
 # limitations under the License.
 #
 
-- include: patch-kube.yml
-  when: patch_kube_enabled
-
-- name: add route for service cluster ip range
-  shell: ip route add {{ kube_cluster_ip_cidr }} dev {{ public_iface }}
-  when: not (public_iface == nat_iface)
+- name: patch kube-controller-manager to support ceph pvc creation
+  command: sed -i "s|gcr.io/google_containers/kube-controller-manager-amd64:{{ kube_version }}|quay.io/attcomdev/kube-controller-manager:v1.5.0-beta.1|g" /etc/kubernetes/manifests/kube-controller-manager.json
+  when: inventory_hostname in groups['kube-masters']
   ignore_errors: true
-
-- include: prep-romana.yml
-  when: (kube_sdn == 'romana')
-
-- include: prep-host-dns.yml
-  when: setup_host_kube_dns

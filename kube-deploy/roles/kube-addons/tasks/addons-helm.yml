@@ -14,20 +14,12 @@
 # limitations under the License.
 #
 
-- name: fetching get_helm.sh script
-  get_url:
-    url: https://raw.githubusercontent.com/kubernetes/helm/master/scripts/get
-    dest: /root/get_helm.sh
-    mode: 0700
-  when: kube_addons_enabled and "{{kube_addons.kube_helm is defined}}"
-  ignore_errors: true
-
 - name: deploying helm tool
-  command: sh /root/get_helm.sh
+  shell: curl -L https://kubernetes-helm.storage.googleapis.com/helm-canary-linux-amd64.tar.gz | tar zxv --strip 1 -C /tmp; chmod +x /tmp/helm; mv /tmp/helm /usr/local/bin/helm
   when: kube_addons_enabled and "{{kube_addons.kube_helm is defined}}"
   ignore_errors: true
 
 - name: initializing helm deployment
-  command: /usr/local/bin/helm init
+  command: /usr/local/bin/helm init --canary-image
   when: kube_addons_enabled and "{{kube_addons.kube_helm is defined}}"
   ignore_errors: true
