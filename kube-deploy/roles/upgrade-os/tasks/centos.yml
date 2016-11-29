@@ -28,22 +28,22 @@
 - name: upgrade the entire system in preparation for next steps
   yum: name=* state=latest
 
-- name: setup elrepo gpgkey
-  shell: rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
-
-- name: adding elrepo kernel repo
-  template:
-    src: templates/elrepo-kernel.repo.j2
-    dest: /etc/yum.repos.d/elrepo-kernel.repo
-    backup: no
-    owner: root
-    group: root
-
-- name: updating kernel
-  shell: yum install -y kernel-ml && grub2-set-default 0
-
-- name: disabling ipv6
-  shell: echo "net.ipv6.conf.all.disable_ipv6 = 1" >> /etc/sysctl.conf && echo "net.ipv6.conf.default.disable_ipv6 = 1" >> /etc/sysctl.conf
+# - name: setup elrepo gpgkey
+#   shell: rpm --import https://www.elrepo.org/RPM-GPG-KEY-elrepo.org
+#
+# - name: adding elrepo kernel repo
+#   template:
+#     src: templates/elrepo-kernel.repo.j2
+#     dest: /etc/yum.repos.d/elrepo-kernel.repo
+#     backup: no
+#     owner: root
+#     group: root
+#
+# - name: updating kernel
+#   shell: yum install -y kernel-ml && grub2-set-default 0
+#
+# - name: disabling ipv6
+#   shell: echo "net.ipv6.conf.all.disable_ipv6 = 1" >> /etc/sysctl.conf && echo "net.ipv6.conf.default.disable_ipv6 = 1" >> /etc/sysctl.conf
 
 - name: installing epel
   shell: yum install -y epel-release
@@ -54,12 +54,12 @@
 - name: installing ceph
   shell: yum install -y ceph
 
-- name: restart machine
-  shell: sleep 2 && shutdown -r now "Ansible updates triggered"
-  async: 1
-  poll: 0
-  sudo: true
-  ignore_errors: true
-
-- name: waiting for server to come back
-  local_action: wait_for port=22 host="{{ ansible_ssh_host | default(inventory_hostname) }}" search_regex=OpenSSH delay=10
+# - name: restart machine
+#   shell: sleep 2 && shutdown -r now "Ansible updates triggered"
+#   async: 1
+#   poll: 0
+#   sudo: true
+#   ignore_errors: true
+#
+# - name: waiting for server to come back
+#   local_action: wait_for port=22 host="{{ ansible_ssh_host | default(inventory_hostname) }}" search_regex=OpenSSH delay=10
