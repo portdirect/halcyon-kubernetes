@@ -41,4 +41,4 @@
 
 - name: join workers to the initialized kubernetes cluster
   shell: "kubeadm join --token {{ init_token }} {{ kube_api }}"
-  when: inventory_hostname in groups['kube-workers'] and worker_kubelet.stat.exists == false
+  when: inventory_hostname in groups['kube-workers'] #and worker_kubelet.stat.exists == false
