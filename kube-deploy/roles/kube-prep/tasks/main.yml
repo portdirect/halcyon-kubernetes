@@ -26,3 +26,6 @@
 
 - include: prep-host-dns.yml
   when: setup_host_kube_dns
+
+- include: prep-ceph-loopback.yml
+  when: setup_host_ceph
